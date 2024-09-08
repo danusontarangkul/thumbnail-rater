@@ -4,15 +4,15 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { UploadButton, UploadFileResponse } from "@xixixao/uploadstuff/react";
 import "@xixixao/uploadstuff/react/styles.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import clsx from "clsx";
-import { isEmpty } from "lodash";
 import { useRouter } from "next/navigation";
+import { usePublicImageUrl } from "@/hooks/usePublicImageUrl";
 
 const defaultErrorState = {
   title: "",
@@ -23,12 +23,23 @@ const defaultErrorState = {
 export default function CreatePage() {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const createThumbnail = useMutation(api.thumbnails.createThumbnail);
-  const getPublicUrl = useMutation(api.files.getPublicUrl);
-  const [imageA, setImageA] = useState("");
-  const [imageB, setImageB] = useState("");
+  const [imageA, setImageA] = useState<string | null>(null);
+  const [imageB, setImageB] = useState<string | null>(null);
   const [errors, setErrors] = useState(defaultErrorState);
   const { toast } = useToast();
   const router = useRouter();
+
+  // Use the custom hook to get public URLs
+  const {
+    publicUrl: imageAUrl,
+    loading: loadingA,
+    error: errorA,
+  } = usePublicImageUrl(imageA);
+  const {
+    publicUrl: imageBUrl,
+    loading: loadingB,
+    error: errorB,
+  } = usePublicImageUrl(imageB);
 
   return (
     <div className="mt-16">
@@ -59,12 +70,14 @@ export default function CreatePage() {
               ...newErrors,
               imageA: "please fill in this required field",
             };
+            return;
           }
           if (!imageB) {
             newErrors = {
               ...newErrors,
               imageB: "please fill in this required field",
             };
+            return;
           }
 
           setErrors(newErrors);
@@ -93,7 +106,7 @@ export default function CreatePage() {
             required
             id="title"
             type="text"
-            placeholder="Label your test to make it eaiser to manage later"
+            placeholder="Label your test to make it easier to manage later"
             className={clsx("flex flex-col gap-4 p-2", {
               "border-red-500": errors.title,
               border: errors.title,
@@ -110,13 +123,13 @@ export default function CreatePage() {
             })}
           >
             <h2 className="text-2xl font-bold">Test Image A</h2>
-            {imageA && (
+            {imageAUrl && (
               <Image
                 priority
                 width="200"
                 height="200"
                 alt="image test a"
-                src={imageA}
+                src={imageAUrl}
               />
             )}
             <UploadButton
@@ -124,13 +137,7 @@ export default function CreatePage() {
               fileTypes={["image/*"]}
               onUploadComplete={async (uploaded: UploadFileResponse[]) => {
                 const storageId = (uploaded[0].response as any).storageId;
-                const publicUrl = await getPublicUrl({ storageId });
-
-                if (publicUrl) {
-                  setImageA(publicUrl);
-                } else {
-                  console.log("Failed to retrieve public URL");
-                }
+                setImageA(storageId);
               }}
               onUploadError={(error: unknown) => {
                 alert(`ERROR! ${error}`);
@@ -143,17 +150,17 @@ export default function CreatePage() {
           <div>
             <div
               className={clsx("flex flex-col gap-4 p-2", {
-                "border-red-500": errors.imageA,
-                border: errors.imageA,
+                "border-red-500": errors.imageB,
+                border: errors.imageB,
               })}
             >
               <h2 className="text-2xl font-bold">Test Image B</h2>
-              {imageB && (
+              {imageBUrl && (
                 <Image
                   width="200"
                   height="200"
                   alt="image test b"
-                  src={imageB}
+                  src={imageBUrl}
                 />
               )}
               <UploadButton
@@ -161,13 +168,7 @@ export default function CreatePage() {
                 fileTypes={["image/*"]}
                 onUploadComplete={async (uploaded: UploadFileResponse[]) => {
                   const storageId = (uploaded[0].response as any).storageId;
-                  const publicUrl = await getPublicUrl({ storageId });
-
-                  if (publicUrl) {
-                    setImageB(publicUrl);
-                  } else {
-                    console.log("Failed to retrieve public URL");
-                  }
+                  setImageB(storageId);
                 }}
                 onUploadError={(error: unknown) => {
                   alert(`ERROR! ${error}`);

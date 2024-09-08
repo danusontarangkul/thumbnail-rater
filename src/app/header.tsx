@@ -10,9 +10,14 @@ export function Header() {
       <div className="h-16 container flex justify-between items-center">
         {" "}
         <div className="pl-14">ThumbnailRater</div>
-        <div>
+        <div className="flex gap-8">
           <SignedIn>
-            <Link href="/create">Create Test</Link>
+            <Link className="link" href="/dashboard">
+              Dashboard
+            </Link>
+            <Link className="link" href="/create">
+              Create
+            </Link>
           </SignedIn>
         </div>
         <div className="flex gap-4 items-center">
