@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { usePublicImageUrl } from "@/hooks/usePublicImageUrl";
+import { useSession } from "@clerk/nextjs";
 
 const defaultErrorState = {
   title: "",
@@ -28,7 +29,9 @@ export default function CreatePage() {
   const [errors, setErrors] = useState(defaultErrorState);
   const { toast } = useToast();
   const router = useRouter();
+  const session = useSession();
 
+  console.log("profile", session.session?.user.imageUrl);
   // Use the custom hook to get public URLs
   const {
     publicUrl: imageAUrl,
@@ -40,6 +43,7 @@ export default function CreatePage() {
     loading: loadingB,
     error: errorB,
   } = usePublicImageUrl(imageB);
+  const profileImage = session.session?.user.imageUrl;
 
   return (
     <div className="mt-16">
@@ -94,6 +98,7 @@ export default function CreatePage() {
             aImage: imageA,
             bImage: imageB,
             title,
+            profileImage: profileImage,
           });
 
           router.push(`/thumbnails/${thumbnailId}`);

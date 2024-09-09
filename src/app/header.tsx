@@ -18,6 +18,9 @@ export function Header() {
             <Link className="link" href="/create">
               Create
             </Link>
+            <Link className="link" href="/explore">
+              Explore
+            </Link>
           </SignedIn>
         </div>
         <div className="flex gap-4 items-center">

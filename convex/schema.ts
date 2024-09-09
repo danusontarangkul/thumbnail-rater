@@ -10,5 +10,6 @@ export default defineSchema({
     bVotes: v.number(),
     bImage: v.string(),
     voteIds: v.array(v.string()),
+    profileImage: v.optional(v.string()),
   }),
 });
