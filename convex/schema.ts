@@ -11,6 +11,17 @@ export default defineSchema({
     bImage: v.string(),
     voteIds: v.array(v.string()),
     profileImage: v.optional(v.string()),
+    comments: v.optional(
+      v.array(
+        v.object({
+          userId: v.string(),
+          text: v.string(),
+          createdAt: v.number(),
+          name: v.string(),
+          profileUrl: v.string(),
+        })
+      )
+    ),
   }),
   users: defineTable({
     userId: v.string(),

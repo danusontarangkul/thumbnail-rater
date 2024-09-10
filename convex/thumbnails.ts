@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { isUserSubscribed } from "./users";
+import { getUserId, getUser } from "./util";
 
 export const createThumbnail = mutation({
   args: {
@@ -32,6 +33,7 @@ export const createThumbnail = mutation({
       bVotes: 0,
       voteIds: [],
       profileImage: args.profileImage,
+      comments: [],
     });
   },
 });
@@ -39,17 +41,13 @@ export const createThumbnail = mutation({
 export const getThumbnailsForUser = query({
   args: {},
   handler: async (ctx, args) => {
-    const user = await ctx.auth.getUserIdentity();
-
-    if (!user) {
-      return [];
-    }
+    const userId = await getUserId(ctx);
 
     return await ctx.db
       .query("thumbnails")
       .filter((q) =>
         // find me user that matches
-        q.eq(q.field("userId"), user.subject)
+        q.eq(q.field("userId"), userId)
       )
       .collect();
   },
@@ -78,7 +76,7 @@ export const voteOnTHumbnail = mutation({
     imageId: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = (await ctx.auth.getUserIdentity())?.subject;
+    const userId = await getUserId(ctx);
 
     if (!userId) {
       throw new Error("you must be logged in to vote");
@@ -107,5 +105,41 @@ export const voteOnTHumbnail = mutation({
         voteIds: [...thumbnail.voteIds, userId],
       });
     }
+  },
+});
+
+export const addComent = mutation({
+  args: { thumbnailId: v.id("thumbnails"), text: v.string() },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+
+    if (!user) {
+      throw new Error("you must be logged in");
+    }
+
+    const thumbnail = await ctx.db.get(args.thumbnailId);
+
+    if (!thumbnail) {
+      throw new Error("thumbnail by id did not exist");
+    }
+    if (!thumbnail.comments) {
+      thumbnail.comments = [];
+    }
+
+    if (!thumbnail.comments) {
+      thumbnail.comments = [];
+    }
+
+    thumbnail.comments.unshift({
+      createdAt: Date.now(),
+      text: args.text,
+      userId: user.subject,
+      name: user.name ?? "Annoymous",
+      profileUrl: user.pictureUrl ?? "",
+    });
+
+    await ctx.db.patch(thumbnail._id, {
+      comments: thumbnail.comments,
+    });
   },
 });

@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@clerk/nextjs";
 import { Progress } from "@/components/ui/progress";
+import { Comments } from "./comments";
 
 export default function ThumbnailPage() {
   const { thumbnailId } = useParams() as { thumbnailId: Id<"thumbnails"> };
@@ -134,6 +135,7 @@ export default function ThumbnailPage() {
           )}
         </div>
       </div>
+      <Comments thumbnail={thumbnail} />
     </div>
   );
 }
